@@ -1,0 +1,750 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="/css/custom-theme/jquery-ui-1.8.2.custom.css" rel="stylesheet" />
+    <script src="/js/jquery_touchpunch.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+
+
+            var boilerColor, deltaY, yVal;
+            var day = 1;
+            var week = 1;
+            var dps1 = new Array();
+            var dps = [20, 50, 150, 200, 180, 200, 200, 20, 50, 150, 200, 180, 200, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            var dday = [0, 200, 200, 180, 200, 150, 50, 20];
+            var cday = [0, 220, 180, 200, 220, 180, 0, 0];
+            var pmax = [0, 0, 0, 0, 0, 0, 0, 0];
+
+            var p1totpatweek = 0;
+            var p2totpatweek = 0;
+            var p1totdaysweek = 0;
+            var p2totdaysweek = 0;
+            var p1nolcpatweek = 0;
+            var p2nolcpatweek = 0;
+            var p1maxWaitweek = 0;
+            var p2maxWaitweek = 0;
+            var p1repweek = 0;
+            var p2repweek = 0;
+            var p1repdaysweek = 0;
+            var p2repdaysweek = 0;
+
+            for (var i = 1; i < 8; i++) {
+                document.getElementById('d' + i).value = dday[i];
+                document.getElementById('c' + i).value = cday[i];
+                document.getElementById('p' + i).value = pmax[i];
+            }
+
+            var days = [1, 1, 1, 1, 1, 1, 1];
+
+            //var dps = [741, 541, 288, 294, 249, 243, 241, 223, 198, 142, 136, 104, 82, 81, 73, 68, 39, 44, 50, 44, 39, 30, 28, 24, 20, 19, 17, 18, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+            var daily = 400;
+            var percent = 0;
+            document.getElementById('a1').value = percent;
+            percent = document.getElementById('a1').value / 100;
+            var random = 0;
+            var dps2 = new Array();
+            for (var i = 0; i < 51; i++) {
+                //boilerColor = yVal > 200 ? "#FF2500" : yVal >= 170 ? "#FF6000" : yVal < 170 ? "#6B8E23 " : null;
+                dps1[i] = { label: i, y: dps[i] * percent };
+                dps2[i] = { label: i, y: dps[i] * (1 - percent) };
+            }
+
+            var that = this;
+            var speed = 0;
+            var timer = 100000;
+            document.getElementById('s1').value = speed;
+
+
+            var mrate = 0;
+            document.getElementById('m1').value = mrate;
+
+            $('#s1').change(function () {
+                runTimer();
+            })
+
+            $("#slider").slider({
+                step: 1,
+                min: 0,
+                max: 10,
+                stop: function (event, ui) {
+                    $("#s1").val(ui.value).change();
+                }
+            });
+
+            $('div.setuptable input').change(function () {
+                var dday = 0; var cday = 0; var pday = 0; var dweek = 0; var cweek = 0; var pweek = 0;
+                for (var i = 1; i < 8; i++) {
+                    dday = $('#d' + i).val() * 1;
+                    cday = $('#c' + i).val() * 1;
+                    pday = $('#p' + i).val() * 1;
+                    dweek = dweek + dday
+                    cweek = cweek + cday
+                    if (pday > cday) {
+                        pday = cday
+                    }
+                    pweek = pweek + pday;
+                }
+                $('#d8').val(dweek);
+                $('#c8').val(cweek);
+                $('#p8').val(pweek);
+                //$('#d8,#c8,#p8').addclass("readonly");
+            });
+            $("#p1none").click(function () {
+                for (var i = 1; i < 8; i++) {
+                    $('#p' + i).val('0').change();
+                }
+            });
+            $("#p150").click(function () {
+                for (var i = 1; i < 8; i++) {
+                    $('#p' + i).val(Math.round($('#c' + i).val()/2)).change();
+                }
+            });
+            $("#p1all").click(function () {
+
+                for (var i = 1; i < 8; i++) {
+                    $('#p' + i).val($('#c' + i).val()).change();
+                }
+            });
+            $("#p1match").click(function () {
+                var weekP1percent = $('#a1').val();
+                var weekcapacity = $('#c8').val();
+                if ($.isNumeric(weekP1percent) && $.isNumeric(weekcapacity)) {
+                    weekP1 = Math.round((weekP1percent * weekcapacity) / 100);
+                    dayP1 = Math.round(weekP1 / 5);
+                    for (var i = 1; i < 6; i++) {
+                        $('#p' + i).val(dayP1).change();
+                    }
+                    if (dayP1 * 5 != weekP1) {
+                        remain = Math.round(weekP1 - (dayP1*5));
+                        $('#p5').val(dayP1 + remain).change();
+                    };
+                }
+            });
+            $("#treset").click(function () {
+                week = 1;
+                $('#weekcount').text("Week " + pd(week))
+            });
+            function median(values) {
+                if (values.length === 0) throw new Error("No inputs");
+
+                values.sort(function (a, b) {
+                    return a - b;
+                });
+
+                var half = Math.floor(values.length / 2);
+
+                if (values.length % 2)
+                    return values[half];
+
+                return (values[half - 1] + values[half]) / 2.0;
+            }
+            function pd(num) {
+                if (num < 10) {
+                    return "0" + num;
+                } else {
+                    return num;
+                }
+            }
+
+
+            var chart = new CanvasJS.Chart("chartContainer", {
+                title: {
+                    text: "Chest X-Ray Reporting Backlog",
+                    font: {
+                        family: "Arial",
+                        size: 32
+                    }
+                },
+                axisY: {
+                    title: "Count CXR",
+                    includeZero: true,
+                    suffix: " ",
+                    minimum: 0,
+                    maximum: 300
+                },
+                axisX: {
+                    title: "Days since CXR acquired"
+                },
+                data: [{
+                    type: "stackedColumn",
+                    showInLegend: true,
+                    color: "#ED8B00",
+                    name: "Priority 1 (P1)"
+                    //		dataPoints: [
+                    //			{ y: 6.75, x: 1},
+                    //			{ y: 8.57, x: 2 }
+                    //		]
+                },
+                {
+                    type: "stackedColumn",
+                    showInLegend: true,
+                    name: "Priority 2 (P2)",
+                    color: "#0066cc"
+                    //			dataPoints: [
+                    //				{ y: 6.82, x: 1 },
+                    //				{ y: 21.5, x: 7 }
+                    //			]
+                }]
+
+            });
+
+            chart.options.data[0].dataPoints = dps1;
+            chart.options.data[1].dataPoints = dps2;
+            chart.render();
+
+            function updateChart() {
+
+                $('tr.weekday > td').removeClass("currday");
+                $('#day' + day).addClass("currday");
+
+                var cweek = 0; var dweek = 0; var pweek = 0; aweek = 0;
+                var p1totdays = 0; var p2totdays = 0; //sum of days waiting
+                var p1totpat = 0; var p2totpat = 0; //number waiting
+                var p1repdays = 0; var p2repdays = 0; //sum of days waiting of those reported
+                var p1rep = 0; var p2rep = 0; //number reported
+                var p1nolcpat = 0; var p2nolcpat = 0;
+                var p1maxWait = 0; var p2maxWait = 0;
+
+                for (var i = 1; i < 8; i++) {
+                    dday[i] = document.getElementById('d' + i).value * 1;
+                    cday[i] = document.getElementById('c' + i).value * 1;
+                    pmax[i] = document.getElementById('p' + i).value * 1;
+                    dweek = dweek + dday[i];
+                    cweek = cweek + cday[i];
+                    pweek = pweek + pmax[i];
+                    if (pmax[i] > cday[i]) {
+                        pmax[i] = cday[i];
+                        document.getElementById('p' + i).value = pmax[i];
+                    }
+                }
+                document.getElementById('d8').value = dweek;
+                document.getElementById('c8').value = cweek;
+                document.getElementById('p8').value = pweek;
+                document.getElementById('a8').value = Math.round(dweek * (document.getElementById('a1').value / 100));
+
+                timer = (10 - document.getElementById('s1').value) * 100;
+                mrate = document.getElementById('m1').value;
+                if (timer == 0) { timer = 50 };
+                if (timer == 1000) { timer = 1000000 };
+                percent = document.getElementById('a1').value / 100;
+                var ddaily = dday[day];
+                var cdaily = cday[day];
+                //console.log(ddaily);
+                var tot = cdaily;
+                var daytot = 0;
+                var p1tot = pmax[day];
+                if (p1tot > cdaily) { p1tot = cdaily };
+                var rand = ddaily * random;
+                //var tot = tot + Math.round(rand + Math.random() * (-rand - rand));
+                var ratio = 0;
+                var rand = percent * random;
+                var perc = percent;
+                //perc = perc  + Math.round(rand + Math.random() * (-rand - rand));
+
+                for (var i = 50; i > 0; i--) {
+                    dps1[i].y = dps1[i - 1].y
+                    dps2[i].y = dps2[i - 1].y
+                }
+                dps1[0].y = ddaily * perc;
+                dps2[0].y = ddaily * (1 - perc);
+
+                for (var i = 50; i >= 0; i--) {
+                    //console.log(dps1[i].y)
+                    if (p1tot > 0 && days[day] == 1 && dps1[i].y > 0) {
+                        if (dps1[i].y >= p1tot) {
+                            p1rep = p1rep + p1tot;
+                            p1repdays = p1repdays + (i * p1tot);
+                            if (i < 2) {
+                                p1nolcpat = p1nolcpat + p1tot;
+
+                            }
+                            tot = tot - p1tot;
+                            dps1[i].y = dps1[i].y - p1tot;
+                            p1tot = 0;
+                        } else {
+                            p1rep = p1rep + dps1[i].y;
+                            p1repdays = p1repdays + (i * dps1[i].y);
+                            if (i < 2) {
+                                p1nolcpat = p1nolcpat + dps1[i].y;
+                                console.log(p1nolcpat);
+                            }
+                            p1tot = p1tot - dps1[i].y;
+                            tot = tot - dps1[i].y;
+                            dps1[i].y = 0;
+                        }
+                    }
+
+                }
+                //for (var i = 50; i >= 0; i--) {
+                //    if (p1tot > 0 && days[day] == 1 && dps2[i].y > 0) {
+                //        if (dps2[i].y >= p1tot) {
+                //            p2rep = p2rep + p1tot;
+                //            p2repdays = p2repdays + (i * p1tot);
+                //            if (i < 2) {
+                //                p2nolcpat = p2nolcpat + p1tot;
+                //            }
+                //            tot = tot - p1tot;
+                //            dps2[i].y = dps2[i].y - p1tot;
+                //            p1tot = 0;
+                //        } else {
+                //            p2rep = p2rep + dps2[i].y;
+                //            p2repdays = p2repdays + (i * dps2[i].y);
+                //            if (i < 2) {
+                //                p2nolcpat = p2nolcpat + dps2[i].y;
+                //            }
+                //            tot = tot - dps2[i].y;
+                //            p1tot = p1tot - dps2[i].y;
+                //            dps2[i].y = 0;
+                //        }
+                //    }
+                //}
+                for (var i = 50; i >= 0; i--) {
+                    daytot = dps1[i].y + dps2[i].y;
+                    if (tot > 0 && daytot > 0) {
+                        if (daytot >= tot) {
+                            ratio = dps1[i].y / (dps1[i].y + dps2[i].y)
+                            p1rep = p1rep + (tot * ratio);
+                            p2rep = p2rep + (tot * (1 - ratio));
+                            p1repdays = p1repdays + (i * (tot * ratio));
+                            p2repdays = p2repdays + (i * (tot * (1 - ratio)));
+                            if (i < 2) {
+                                p1nolcpat = p1nolcpat + (tot * ratio);
+                                p2nolcpat = p2nolcpat + (tot * (1 - ratio));
+                            }
+                            dps1[i].y = dps1[i].y - (tot * ratio);
+                            dps2[i].y = dps2[i].y - (tot * (1 - ratio));
+                            tot = 0;
+                        } else {
+                            p1rep = p1rep + dps1[i].y;
+                            p2rep = p2rep + dps2[i].y;
+                            p1repdays = p1repdays + (i * dps1[i].y);
+                            p2repdays = p2repdays + (i * dps2[i].y);
+                            if (i < 2) {
+                                p1nolcpat = p1nolcpat + dps1[i].y;
+                                p2nolcpat = p2nolcpat + dps2[i].y;
+                            }
+                            tot = tot - daytot;
+                            dps1[i].y = 0;
+                            dps2[i].y = 0;
+                        }
+                    }
+                }
+
+
+                if (day == 1) {
+                    p1totpatweek = 0;
+                    p2totpatweek = 0;
+                    p1totdaysweek = 0;
+                    p2totdaysweek = 0;
+                    p1nolcpatweek = 0;
+                    p2nolcpatweek = 0;
+                    p1maxWaitweek = 0;
+                    p2maxWaitweek = 0;
+                    p1repweek = 0;
+                    p2repweek = 0;
+                    p1repdaysweek = 0;
+                    p2repdaysweek = 0;
+                }
+
+                for (var i = 50; i >= 0; i--) {
+                    p1totpat = p1totpat + dps1[i].y;
+                    p2totpat = p2totpat + dps2[i].y;
+                    p1totdays = p1totdays + (dps1[i].y * i);
+                    p2totdays = p2totdays + (dps2[i].y * i);
+                    if (i > p1maxWaitweek && dps1[i].y > 0) { p1maxWaitweek = i };
+                    if (i > p2maxWaitweek && dps2[i].y > 0) { p2maxWaitweek = i };
+                }
+
+
+                p1totpatweek = p1totpatweek + p1totpat;
+                p2totpatweek = p2totpatweek + p2totpat;
+                p1totdaysweek = p1totdaysweek + p1totdays;
+                p2totdaysweek = p2totdaysweek + p2totdays;
+                p1nolcpatweek = p1nolcpatweek + p1nolcpat;
+                p2nolcpatweek = p2nolcpatweek + p2nolcpat;
+                p1repweek = p1repweek + p1rep;
+                p2repweek = p2repweek + p2rep;
+                p1repdaysweek = p1repdaysweek + p1repdays;
+                p2repdaysweek = p2repdaysweek + p2repdays;
+
+                //document.getElementById('p1totpat').value = Math.round(p1totpat);
+                //document.getElementById('p2totpat').value = Math.round(p2totpat);
+                //document.getElementById('totpat').value = Math.round(p1totpat + p2totpat);
+
+
+                //document.getElementById('p1totdays').value = Math.round(p1totdays);
+                //document.getElementById('p2totdays').value = Math.round(p2totdays);
+                //document.getElementById('totdays').value = Math.round(p1totdays + p2totdays);
+
+                //document.getElementById('p1avWait').value = Math.round(p1totdays / p1totpat);
+                //document.getElementById('p2avWait').value = Math.round(p2totdays / p2totpat);
+                //document.getElementById('avWait').value = Math.round((p1totdays + p2totdays) / (p1totpat + p2totpat));
+
+                //document.getElementById('p1nolcpat').value = Math.round((p1nolcpat * 100) / p1totpat) + "%";
+                //document.getElementById('p2nolcpat').value = Math.round((p2nolcpat * 100) / p2totpat) + "%";
+                //document.getElementById('nolcpat').value = Math.round(((p1nolcpat + p2nolcpat) * 100) / (p1totpat + p2totpat)) + "%";
+
+                if (day == 7) {
+
+                    document.getElementById('p1totpat').value = Math.round(p1totpatweek / 7);
+                    document.getElementById('p2totpat').value = Math.round(p2totpatweek / 7);
+                    document.getElementById('totpat').value = Math.round((p1totpatweek + p2totpatweek) / 7);
+
+
+                    document.getElementById('p1totdays').value = Math.round(p1totdaysweek / 7);
+                    document.getElementById('p2totdays').value = Math.round(p2totdaysweek / 7);
+                    document.getElementById('totdays').value = Math.round((p1totdaysweek + p2totdaysweek) / 7);
+
+
+                    document.getElementById('p1maxWait').value = Math.round(p1maxWaitweek);
+                    document.getElementById('p2maxWait').value = Math.round(p2maxWaitweek);
+                    document.getElementById('maxWait').value = Math.round(p2maxWaitweek);;
+
+                    document.getElementById('p1avWait').value = Math.round(p1totdaysweek / p1totpatweek);
+                    document.getElementById('p2avWait').value = Math.round(p2totdaysweek / p2totpatweek);
+                    document.getElementById('avWait').value = Math.round((p1totdaysweek + p2totdaysweek) / (p1totpatweek + p2totpatweek));
+
+
+                    document.getElementById('p1avTat').value = Math.round(p1repdaysweek / p1repweek);
+                    document.getElementById('p2avTat').value = Math.round(p2repdaysweek / p2repweek);
+                    document.getElementById('avTat').value = Math.round((p1repdaysweek + p2repdaysweek) / (p1repweek + p2repweek));
+
+                    //console.log(Math.round(p1nolcpatweek) + "/" + Math.round(p1repweek));
+                    document.getElementById('p1nolcpat').value = Math.round((p1nolcpatweek * 100) / p1repweek) + "%";
+                    document.getElementById('p2nolcpat').value = Math.round((p2nolcpatweek * 100) / p2repweek) + "%";
+                    document.getElementById('nolcpat').value = Math.round(((p1nolcpatweek + p2nolcpatweek) * 100) / (p1repweek + p2repweek)) + "%";
+
+                    if (mrate != "") {
+                        var p1cancpat = Math.round((p1nolcpatweek * 100 * (mrate / 100)) / p1repweek);
+                        var p2cancpat = Math.round((p2nolcpatweek * 100 * ((100 - mrate) / 100)) / p2repweek);
+                        var cancpat = Math.round(p1cancpat + p2cancpat);
+                        document.getElementById('p1cancpat').value = p1cancpat + "%";
+                        document.getElementById('p2cancpat').value = p2cancpat + "%";
+                        document.getElementById('cancpat').value = cancpat + "%";
+                    } else {
+                        document.getElementById('p1cancpat').value = "";
+                        document.getElementById('p2cancpat').value = "";
+                    }
+
+
+                    if (p1repweek == 0) {
+                        document.getElementById('p1avTat').value = "";
+                        document.getElementById('p1nolcpat').value = ""
+                        document.getElementById('p1cancpat').value = "";
+                        document.getElementById('cancpat').value = "0%";
+                    }
+                }
+
+
+                chart.options.data[0].dataPoints = dps1;
+                chart.options.data[1].dataPoints = dps2;
+                chart.render();
+
+                day = day + 1;
+                if (day > 7) {
+                    day = 1;
+                    week = week + 1;
+                    if (week > 52) { week = 1 };
+                    $('#weekcount').text("Week "+ pd(week))
+                };
+
+            };
+
+            updateChart();
+
+
+            //setInterval(function () { updateChart() }, 400);
+
+            var runTimer = function () {
+                clearInterval(interval);
+                updateChart();
+                interval = setInterval(runTimer, timer);
+            }
+            var interval = setInterval(runTimer, timer);
+
+        }
+    </script>
+    <style type="text/css">
+        body, body * {
+            font-family: Arial;
+            font-size: 14pt;
+        }
+
+        #chartContainer {
+            height: 600px;
+            /*max-width:1000px;*/
+        }
+
+        input {
+            width: 60px;
+            font-size: 14pt;
+        }
+
+        td.currday {
+            background: #0066cc;
+            color: white;
+        }
+
+        div.setuptable > table > tbody > tr > td {
+            padding: 3px;
+        }
+
+        div.setuptable > table > thead > tr > td {
+            padding: 3px;
+            font-weight: bold;
+        }
+
+        div.resultContainer > table > tbody > tr > td {
+            padding: 3px;
+        }
+
+        div.resultContainer > table > thead > tr > td {
+            padding: 3px;
+            font-weight: bold;
+        }
+
+        a.canvasjs-chart-credit {
+            display: none;
+        }
+
+        div.qbuttons {
+            float: right;
+        }
+
+            div.qbuttons > button {
+                width: 100px;
+                margin-bottom: 10px;
+                padding: 5px;
+            }
+
+        #weekcount {
+            float: right;
+            font-weight: bold;
+            font-size: 16pt;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="qbuttons">
+        <button id="p1none">P1 None</button>
+        <br />
+        <button id="p150">P1 50%</button>
+        <br />
+        <button id="p1all">P1 100%</button>
+        <br />
+        <button id="p1match">P1 Match</button>
+    </div>
+    <div class="setuptable">
+        <table>
+
+            <thead>
+                <tr class="weekday">
+                    <td></td>
+
+                    <td id="day1">Mon</td>
+                    <td id="day2">Tue</td>
+                    <td id="day3">Wed</td>
+                    <td id="day4">Thu</td>
+                    <td id="day5">Fri</td>
+                    <td id="day6">Sat</td>
+                    <td id="day7">Sun</td>
+                    <td id="day8">Week Total</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        Daily CXR Acquired
+                        (Demand)
+                    </td>
+                    <%for i=1 to 8 %>
+                    <td>
+                        <input type="number" min="0" max="500" id="d<%=i %>" />
+                    </td>
+                    <%next %>
+                </tr>
+                <tr>
+                    <td>Daily CXR Reported (Capacity) </td>
+                    <%for i=1 to 8 %>
+                    <td>
+                        <input type="number" min="0" max="500" id="c<%=i %>" />
+                    </td>
+                    <%next %>
+                </tr>
+                <tr>
+                    <td>
+                        Capacity Assigned to Report P1
+                    </td>
+                    <%for i=1 to 8 %>
+                    <td>
+                        <input type="number" min="0" max="500" class="pinput" id="p<%=i %>" />
+                    </td>
+                    <%next %>
+                </tr>
+
+                <tr>
+                    <td>
+                        Percent of CXR that are P1
+                    </td>
+                    <td>
+                        <input type="number" min="0" max="100" id="a1" />
+                    </td>
+                    <td>%</td>
+                    <%for i=1 to 5 %>
+                    <td></td>
+                    <%next %>
+                    <td>
+                        <input id="a8" />
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        Percent of Cancers that are P1
+                    </td>
+                    <td>
+                        <input type="number" min="0" max="100" id="m1" />
+                    </td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        Animation Speed
+                    </td>
+                    <td colspan="7">
+                        <div id="slider"></div>
+                        <input style="display: none" type="number" min="0" max="10" id="s1" />
+                    </td>
+
+                    <td></td>
+
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div id="chartContainer"></div>
+    <div id="weekcount">Week 01</div>
+    <div class="qbuttons" style="clear: right; margin-top: 20px;">
+        <button id="treset">Reset Week</button>
+    </div>
+    <div class="resultContainer">
+        <table>
+            <thead>
+                <tr>
+                    <td>Weekly Averages</td>
+                    <td>P1</td>
+                    <td>P2</td>
+                    <td>All CXR</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Report Backlog Patients</td>
+                    <td>
+                        <input id="p1totpat">
+                    </td>
+                    <td>
+                        <input id="p2totpat">
+                    </td>
+                    <td>
+                        <input id="totpat">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Report Backlog Days</td>
+                    <td>
+                        <input id="p1totdays">
+                    </td>
+                    <td>
+                        <input id="p2totdays">
+                    </td>
+                    <td>
+                        <input id="totdays">
+                    </td>
+                </tr>
+                <tr style="display: none">
+                    <td>Max Report Tat Days (per week)</td>
+                    <td>
+                        <input id="p1maxWait">
+                    </td>
+                    <td>
+                        <input id="p2maxWait">
+                    </td>
+                    <td>
+                        <input id="maxWait">
+                    </td>
+                </tr>
+                <tr style="display: none">
+                    <td>Average Backlog Wait Days (weekly average)</td>
+                    <td>
+                        <input id="p1avWait">
+                    </td>
+                    <td>
+                        <input id="p2avWait">
+                    </td>
+                    <td>
+                        <input id="avWait">
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Report Turnaround Time (days)</td>
+                    <td>
+                        <input id="p1avTat">
+                    </td>
+                    <td>
+                        <input id="p2avTat">
+                    </td>
+                    <td>
+                        <input id="avTat">
+                    </td>
+                </tr>
+                <tr>
+                    <td>NOLCP Report Target (percent)</td>
+                    <td>
+                        <input id="p1nolcpat">
+                    </td>
+                    <td>
+                        <input id="p2nolcpat">
+                    </td>
+                    <td>
+                        <input id="nolcpat">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>NOLCP Cancer Target (percent)</td>
+                    <td>
+                        <input id="p1cancpat">
+                    </td>
+                    <td>
+                        <input id="p2cancpat">
+                    </td>
+                    <td>
+                        <input id="cancpat">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="height: 100px"></div>
+    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+</body>
+</html>
+
+</html>
