@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reporting", "reporting", "{196030F5-9001-4A15-8D6B-C764FB2B3937}"
 	ProjectSection(SolutionItems) = preProject
-		chart.asp = chart.asp
+		chart..html = chart..html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{13393502-8898-435E-86EB-1D24EC4D89DC}"
