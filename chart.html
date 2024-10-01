@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="//jquery_touchpunch.js"></script>
     <script type="text/javascript">
-        window.onload = function () {
+        $(document).ready(function () {
 
 
             var boilerColor, deltaY, yVal;
@@ -102,7 +102,7 @@
             });
             $("#p150").click(function () {
                 for (var i = 1; i < 8; i++) {
-                    $('#p' + i).val(Math.round($('#c' + i).val()/2)).change();
+                    $('#p' + i).val(Math.round($('#c' + i).val() / 2)).change();
                 }
             });
             $("#p1all").click(function () {
@@ -121,7 +121,7 @@
                         $('#p' + i).val(dayP1).change();
                     }
                     if (dayP1 * 5 != weekP1) {
-                        remain = Math.round(weekP1 - (dayP1*5));
+                        remain = Math.round(weekP1 - (dayP1 * 5));
                         $('#p5').val(dayP1 + remain).change();
                     };
                 }
@@ -451,7 +451,7 @@
                     day = 1;
                     week = week + 1;
                     if (week > 52) { week = 1 };
-                    $('#weekcount').text("Week "+ pd(week))
+                    $('#weekcount').text("Week " + pd(week))
                 };
 
             };
@@ -468,7 +468,7 @@
             }
             var interval = setInterval(runTimer, timer);
 
-        }
+        });
     </script>
     <style type="text/css">
         body, body * {
